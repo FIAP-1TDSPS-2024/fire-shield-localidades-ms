@@ -1,11 +1,1 @@
-services:
-  activemq:
-    image: 'apache/activemq-classic:latest'
-    ports:
-      - '61616'
-  oracle:
-    image: 'gvenzl/oracle-free:latest'
-    environment:
-      - 'ORACLE_PASSWORD=secret'
-    ports:
-      - '1521'
+

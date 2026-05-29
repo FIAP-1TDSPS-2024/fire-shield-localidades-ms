@@ -44,30 +44,25 @@ public class Ocorrencia {
     @Column(nullable = false, updatable = false)
     private Instant horarioSalvamento;
 
-    private Long placeId;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private StatusEnriquecimento statusEnriquecimento = StatusEnriquecimento.PENDENTE;
 
-    private String addressType;
+    @Column(nullable = false)
+    private int tentativasEnriquecimento = 0;
+
+    private Long placeId;
 
     private String nome;
 
     @Column(length = 500)
     private String displayName;
 
-    private String tipoVia;
-
-    private String via;
-
     private String bairro;
-
-    private String distrito;
 
     private String cidade;
 
-    private String municipio;
-
     private String estado;
-
-    private String iso3166Lvl4;
 
     private String regiao;
 
@@ -78,27 +73,12 @@ public class Ocorrencia {
     @Column(length = 2)
     private String codigoPais;
 
+    /** Cria uma ocorrência com apenas os dados obrigatórios. O endereço é preenchido posteriormente pelo job. */
     @Builder
     public Ocorrencia(double latitude,
                       double longitude,
                       SeveridadeOcorrencia severidade,
-                      Instant horarioDeteccao,
-                      Long placeId,
-                      String addressType,
-                      String nome,
-                      String displayName,
-                      String tipoVia,
-                      String via,
-                      String bairro,
-                      String distrito,
-                      String cidade,
-                      String municipio,
-                      String estado,
-                      String iso3166Lvl4,
-                      String regiao,
-                      String cep,
-                      String pais,
-                      String codigoPais) {
+                      Instant horarioDeteccao) {
 
         validarCoordenadas(latitude, longitude);
         if (severidade == null) {
@@ -112,22 +92,49 @@ public class Ocorrencia {
         this.longitude = longitude;
         this.severidade = severidade;
         this.horarioDeteccao = horarioDeteccao;
+        this.statusEnriquecimento = StatusEnriquecimento.PENDENTE;
+        this.tentativasEnriquecimento = 0;
+    }
+
+    // -------------------------------------------------------------------------
+    // Métodos de domínio para o ciclo de enriquecimento de endereço
+    // -------------------------------------------------------------------------
+
+    /** Aplica os dados de endereço retornados pela API e marca como enriquecida. */
+    public void aplicarEndereco(Long placeId,
+                                String nome,
+                                String displayName,
+                                String bairro,
+                                String cidade,
+                                String estado,
+                                String regiao,
+                                String cep,
+                                String pais,
+                                String codigoPais) {
         this.placeId = placeId;
-        this.addressType = addressType;
         this.nome = nome;
         this.displayName = displayName;
-        this.tipoVia = tipoVia;
-        this.via = via;
         this.bairro = bairro;
-        this.distrito = distrito;
         this.cidade = cidade;
-        this.municipio = municipio;
         this.estado = estado;
-        this.iso3166Lvl4 = iso3166Lvl4;
         this.regiao = regiao;
         this.cep = cep;
         this.pais = pais;
         this.codigoPais = codigoPais;
+        this.statusEnriquecimento = StatusEnriquecimento.ENRIQUECIDA;
+    }
+
+    /** Registra uma tentativa malsucedida por erro 5xx. Após 3 tentativas marca como serviço indisponível. */
+    public void registrarFalhaEnriquecimento() {
+        this.tentativasEnriquecimento++;
+        if (this.tentativasEnriquecimento >= 3) {
+            this.statusEnriquecimento = StatusEnriquecimento.SERVICO_INDISPONIVEL;
+        }
+    }
+
+    /** Marca a ocorrência como inválida (coordenadas recusadas pela API com 4xx). Não haverá novas tentativas. */
+    public void marcarCoordenadasInvalidas() {
+        this.statusEnriquecimento = StatusEnriquecimento.COORDENADAS_INVALIDAS;
     }
 
     @PrePersist
@@ -149,5 +156,16 @@ public class Ocorrencia {
         ALTA,
         MEDIA,
         BAIXA
+    }
+
+    public enum StatusEnriquecimento {
+        /** Aguardando chamada à API de localidade. */
+        PENDENTE,
+        /** Endereço aplicado com sucesso. */
+        ENRIQUECIDA,
+        /** API retornou 4xx — coordenadas inválidas ou fora do Brasil. Sem novas tentativas. */
+        COORDENADAS_INVALIDAS,
+        /** API retornou 5xx nas 3 tentativas — serviço indisponível no momento. */
+        SERVICO_INDISPONIVEL
     }
 }
