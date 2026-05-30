@@ -26,13 +26,13 @@ public class OcorrenciaServiceImpl implements OcorrenciaService {
 
     private static final String OUTBOX_TYPE = "OCORRENCIA";
 
+    private String QUEUE = "${RABBITMQ_QUEUE_DESTINY}";
+
     private final OcorrenciaRepository ocorrenciaRepository;
     private final LocalidadeAppClient localidadeAppClient;
     private final OutBoxService outBoxService;
     private final ObjectMapper objectMapper;
 
-    @Value("${app.outbox.ocorrencia.destination:ocorrencia.processada.queue}")
-    private String outboxDestination;
 
     @Override
     @Transactional
@@ -118,7 +118,7 @@ public class OcorrenciaServiceImpl implements OcorrenciaService {
             outBoxService.save(new OutboxEvent(
                     ocorrencia.getUuid().toString(),
                     OUTBOX_TYPE,
-                    outboxDestination,
+                    QUEUE,
                     payload
             ));
             log.info("[OUTBOX] Evento registrado para uuid={}, status={}",

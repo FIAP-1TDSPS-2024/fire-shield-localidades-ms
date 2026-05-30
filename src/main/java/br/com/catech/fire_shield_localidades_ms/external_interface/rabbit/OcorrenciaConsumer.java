@@ -25,7 +25,7 @@ public class OcorrenciaConsumer {
      * application/json. Usar String evita a necessidade de recodificar bytes manualmente,
      * e o ObjectMapper trata os escapes Unicode do JSON (ex.: \u00E3 → ã) corretamente.
      */
-    @RabbitListener(queues = "${app.rabbitmq.queue}")
+    @RabbitListener(queues = "${RABBITMQ_QUEUE_ORIGIN}")
     public void consumir(String mensagem) {
         log.info("[RABBITMQ] Mensagem recebida: {}", mensagem);
         try {

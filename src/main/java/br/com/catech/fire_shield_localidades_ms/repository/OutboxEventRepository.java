@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface OutboxEventRepository extends JpaRepository<OutboxEvent, String> {
 
-    @Query(nativeQuery = true, value = "select distinct o.* from outbox_event o where o.status = 'PENDENTE' LIMIT 10 ")
+    @Query(nativeQuery = true, value = "select distinct o.* from outbox_event o where o.status = 'PENDENTE' FETCH FIRST 10 ROWS ONLY")
     List<OutboxEvent> findDistinctPendentes();
 }
