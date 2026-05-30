@@ -3,13 +3,18 @@ package br.com.catech.fire_shield_localidades_ms.service;
 import br.com.catech.fire_shield_localidades_ms.dto.EnderecoDto;
 import br.com.catech.fire_shield_localidades_ms.dto.OcorrenciaRequest;
 import br.com.catech.fire_shield_localidades_ms.entity.Ocorrencia;
+import br.com.catech.fire_shield_localidades_ms.entity.OutboxEvent;
 import br.com.catech.fire_shield_localidades_ms.exception.CoordenadasForaDoBrasilException;
 import br.com.catech.fire_shield_localidades_ms.external_interface.feign.LocalidadeAppClient;
 import br.com.catech.fire_shield_localidades_ms.repository.OcorrenciaRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -19,10 +24,18 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class OcorrenciaServiceImpl implements OcorrenciaService {
 
+    private static final String OUTBOX_TYPE = "OCORRENCIA";
+
     private final OcorrenciaRepository ocorrenciaRepository;
     private final LocalidadeAppClient localidadeAppClient;
+    private final OutBoxService outBoxService;
+    private final ObjectMapper objectMapper;
+
+    @Value("${app.outbox.ocorrencia.destination:ocorrencia.processada.queue}")
+    private String outboxDestination;
 
     @Override
+    @Transactional
     public Ocorrencia registrar(OcorrenciaRequest request) {
         Ocorrencia ocorrencia = Ocorrencia.builder()
                 .latitude(request.latitude())
@@ -30,10 +43,7 @@ public class OcorrenciaServiceImpl implements OcorrenciaService {
                 .severidade(request.severidade())
                 .horarioDeteccao(request.horarioDeteccao())
                 .build();
-
-        Ocorrencia salva = ocorrenciaRepository.save(ocorrencia);
-        publicar(salva);
-        return salva;
+        return ocorrenciaRepository.save(ocorrencia);
     }
 
     @Override
@@ -48,25 +58,14 @@ public class OcorrenciaServiceImpl implements OcorrenciaService {
         return ocorrenciaRepository.findAll();
     }
 
-    /**
-     * Realiza UMA chamada à API de localidade para enriquecer o endereço da ocorrência.
-     * Regras de HTTP:
-     *  - 2xx ? aplica endereço e marca ENRIQUECIDA
-     *  - 4xx ? coordenadas inválidas/fora do Brasil, marca COORDENADAS_INVALIDAS (sem novas tentativas)
-     *  - 5xx / erro de rede ? incrementa contador; após 3 falhas marca SERVICO_INDISPONIVEL
-     *
-     * O job é responsável por chamar este método repetidamente a cada 5 minutos,
-     * apenas para ocorrências com status PENDENTE.
-     */
     @Override
+    @Transactional
     public void tentarEnriquecer(Ocorrencia ocorrencia) {
         log.info("Tentando enriquecer ocorrencia uuid={} (tentativa {}/3)",
                 ocorrencia.getUuid(), ocorrencia.getTentativasEnriquecimento() + 1);
         try {
             EnderecoDto dto = localidadeAppClient.buscarEnderecoPorCoordenadas(
-                    ocorrencia.getLatitude(),
-                    ocorrencia.getLongitude(),
-                    "json");
+                    ocorrencia.getLatitude(), ocorrencia.getLongitude(), "json");
 
             EnderecoDto.AddressDto addr = dto.address();
             ocorrencia.aplicarEndereco(
@@ -83,32 +82,50 @@ public class OcorrenciaServiceImpl implements OcorrenciaService {
             );
             ocorrenciaRepository.save(ocorrencia);
             log.info("Ocorrencia uuid={} enriquecida com sucesso.", ocorrencia.getUuid());
+            criarOutboxEvent(ocorrencia); // terminal: ENRIQUECIDA
 
         } catch (FeignException.FeignClientException ex) {
             int status = ex.status();
             if (status >= 400 && status < 500) {
-                log.warn("Coordenadas invalidas ou fora do Brasil (HTTP {}) para uuid={}. Descartando enriquecimento.",
+                log.warn("Coordenadas invalidas ou fora do Brasil (HTTP {}) para uuid={}.",
                         status, ocorrencia.getUuid());
                 ocorrencia.marcarCoordenadasInvalidas();
                 ocorrenciaRepository.save(ocorrencia);
+                criarOutboxEvent(ocorrencia); // terminal: COORDENADAS_INVALIDAS
                 throw new CoordenadasForaDoBrasilException(
                         "uuid=" + ocorrencia.getUuid() + " HTTP " + status);
             }
             log.warn("Erro 5xx (HTTP {}) ao enriquecer uuid={}", status, ocorrencia.getUuid());
             ocorrencia.registrarFalhaEnriquecimento();
             ocorrenciaRepository.save(ocorrencia);
+            if (ocorrencia.getStatusEnriquecimento() == Ocorrencia.StatusEnriquecimento.SERVICO_INDISPONIVEL) {
+                criarOutboxEvent(ocorrencia); // terminal: SERVICO_INDISPONIVEL (3a falha 5xx)
+            }
 
         } catch (FeignException ex) {
             log.warn("Erro de comunicacao ao enriquecer uuid={}: {}", ocorrencia.getUuid(), ex.getMessage());
             ocorrencia.registrarFalhaEnriquecimento();
             ocorrenciaRepository.save(ocorrencia);
+            if (ocorrencia.getStatusEnriquecimento() == Ocorrencia.StatusEnriquecimento.SERVICO_INDISPONIVEL) {
+                criarOutboxEvent(ocorrencia); // terminal: SERVICO_INDISPONIVEL (3a falha de rede)
+            }
         }
     }
 
-
-    /** Publica a ocorrencia. Implementacao pendente (padrao Outbox). */
-    private void publicar(Ocorrencia ocorrencia) {
-        // TODO: implementar padrao Outbox
-        log.info("[PUBLICACAO PENDENTE] uuid={}", ocorrencia.getUuid());
+    private void criarOutboxEvent(Ocorrencia ocorrencia) {
+        try {
+            String payload = objectMapper.writeValueAsString(ocorrencia);
+            outBoxService.save(new OutboxEvent(
+                    ocorrencia.getUuid().toString(),
+                    OUTBOX_TYPE,
+                    outboxDestination,
+                    payload
+            ));
+            log.info("[OUTBOX] Evento registrado para uuid={}, status={}",
+                    ocorrencia.getUuid(), ocorrencia.getStatusEnriquecimento());
+        } catch (JsonProcessingException e) {
+            log.error("[OUTBOX] Falha ao serializar ocorrencia uuid={}: {}",
+                    ocorrencia.getUuid(), e.getMessage(), e);
+        }
     }
 }
