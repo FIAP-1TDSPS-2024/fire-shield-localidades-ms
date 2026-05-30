@@ -31,7 +31,7 @@ public class EnriquecimentoEnderecoJob {
     private final OcorrenciaRepository ocorrenciaRepository;
     private final OcorrenciaService ocorrenciaService;
 
-    @Scheduled(fixedDelay = 5 * 60 * 1000) // 5 minutos em ms
+    @Scheduled(fixedDelay = 60 * 1000) // 5 minutos em ms
     public void executar() {
         List<Ocorrencia> pendentes = ocorrenciaRepository
                 .findByStatusEnriquecimento(StatusEnriquecimento.PENDENTE);

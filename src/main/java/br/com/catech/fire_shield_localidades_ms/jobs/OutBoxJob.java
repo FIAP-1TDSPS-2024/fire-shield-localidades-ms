@@ -23,7 +23,7 @@ public class OutBoxJob {
         this.rabbitTemplate = rabbitTemplate;
     }
 
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 100000)
     public void pedidosPendentes() {
         final List<OutboxEvent> pedentesToProcess = this.outBoxService.findPedentesToProcess();
         for (OutboxEvent outboxEvent : pedentesToProcess) {
