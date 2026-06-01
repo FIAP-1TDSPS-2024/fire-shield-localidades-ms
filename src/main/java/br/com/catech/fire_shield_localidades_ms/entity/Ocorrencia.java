@@ -18,7 +18,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Entity
-@Table(name = "ocorrencias")
+@Table(name = "loc_ocorrencia")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Ocorrencia {

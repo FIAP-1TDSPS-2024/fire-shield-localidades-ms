@@ -91,24 +91,17 @@ public class OcorrenciaServiceImpl implements OcorrenciaService {
                         status, ocorrencia.getUuid());
                 ocorrencia.marcarCoordenadasInvalidas();
                 ocorrenciaRepository.save(ocorrencia);
-                criarOutboxEvent(ocorrencia); // terminal: COORDENADAS_INVALIDAS
                 throw new CoordenadasForaDoBrasilException(
                         "uuid=" + ocorrencia.getUuid() + " HTTP " + status);
             }
             log.warn("Erro 5xx (HTTP {}) ao enriquecer uuid={}", status, ocorrencia.getUuid());
             ocorrencia.registrarFalhaEnriquecimento();
             ocorrenciaRepository.save(ocorrencia);
-            if (ocorrencia.getStatusEnriquecimento() == Ocorrencia.StatusEnriquecimento.SERVICO_INDISPONIVEL) {
-                criarOutboxEvent(ocorrencia); // terminal: SERVICO_INDISPONIVEL (3a falha 5xx)
-            }
 
         } catch (FeignException ex) {
             log.warn("Erro de comunicacao ao enriquecer uuid={}: {}", ocorrencia.getUuid(), ex.getMessage());
             ocorrencia.registrarFalhaEnriquecimento();
             ocorrenciaRepository.save(ocorrencia);
-            if (ocorrencia.getStatusEnriquecimento() == Ocorrencia.StatusEnriquecimento.SERVICO_INDISPONIVEL) {
-                criarOutboxEvent(ocorrencia); // terminal: SERVICO_INDISPONIVEL (3a falha de rede)
-            }
         }
     }
 

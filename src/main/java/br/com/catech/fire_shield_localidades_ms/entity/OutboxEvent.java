@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
+@Table(name = "loc_outbox_event")
 @Getter
 public class OutboxEvent {
 
@@ -21,7 +22,7 @@ public class OutboxEvent {
     @Column(name = "reference_id", nullable = false)
     private String referenceId;      // ID do pedido que originou o evento
 
-    @Column(name = "class", nullable = false, columnDefinition = "CLOB")
+    @Column(name = "event_type", nullable = false, columnDefinition = "CLOB")
     private String type;             // ex: "PEDIDO" — identifica o tipo do agregado
 
     @Column(nullable = false, columnDefinition = "CLOB")
