@@ -1,6 +1,7 @@
 package br.com.catech.fire_shield_localidades_ms.service;
 
 import br.com.catech.fire_shield_localidades_ms.dto.EnderecoDto;
+import br.com.catech.fire_shield_localidades_ms.dto.OcorrenciaOut;
 import br.com.catech.fire_shield_localidades_ms.dto.OcorrenciaRequest;
 import br.com.catech.fire_shield_localidades_ms.entity.Ocorrencia;
 import br.com.catech.fire_shield_localidades_ms.entity.OutboxEvent;
@@ -107,7 +108,7 @@ public class OcorrenciaServiceImpl implements OcorrenciaService {
 
     private void criarOutboxEvent(Ocorrencia ocorrencia) {
         try {
-            String payload = objectMapper.writeValueAsString(ocorrencia);
+            String payload = objectMapper.writeValueAsString(toOut(ocorrencia));
             outBoxService.save(new OutboxEvent(
                     ocorrencia.getUuid().toString(),
                     OUTBOX_TYPE,
@@ -120,5 +121,20 @@ public class OcorrenciaServiceImpl implements OcorrenciaService {
             log.error("[OUTBOX] Falha ao serializar ocorrencia uuid={}: {}",
                     ocorrencia.getUuid(), e.getMessage(), e);
         }
+    }
+
+    private OcorrenciaOut toOut(Ocorrencia ocorrencia) {
+        return new OcorrenciaOut(
+                ocorrencia.getUuid(),
+                ocorrencia.getLatitude(),
+                ocorrencia.getLongitude(),
+                ocorrencia.getSeveridade(),
+                ocorrencia.getHorarioDeteccao(),
+                ocorrencia.getNome(),
+                ocorrencia.getBairro(),
+                ocorrencia.getCidade(),
+                ocorrencia.getEstado(),
+                ocorrencia.getCep()
+        );
     }
 }
