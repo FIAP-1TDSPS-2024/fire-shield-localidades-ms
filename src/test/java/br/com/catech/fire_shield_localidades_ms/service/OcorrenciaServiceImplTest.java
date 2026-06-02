@@ -3,7 +3,7 @@ package br.com.catech.fire_shield_localidades_ms.service;
 import br.com.catech.fire_shield_localidades_ms.dto.EnderecoDto;
 import br.com.catech.fire_shield_localidades_ms.dto.OcorrenciaRequest;
 import br.com.catech.fire_shield_localidades_ms.entity.Ocorrencia;
-import br.com.catech.fire_shield_localidades_ms.entity.Ocorrencia.SeveridadeOcorrencia;
+import br.com.catech.fire_shield_localidades_ms.enums.SeveridadeOcorrenciaEnum;
 import br.com.catech.fire_shield_localidades_ms.entity.Ocorrencia.StatusEnriquecimento;
 import br.com.catech.fire_shield_localidades_ms.entity.OutboxEvent;
 import br.com.catech.fire_shield_localidades_ms.exception.CoordenadasForaDoBrasilException;
@@ -55,14 +55,14 @@ class OcorrenciaServiceImplTest {
         return Ocorrencia.builder()
                 .latitude(-23.5505)
                 .longitude(-46.6333)
-                .severidade(SeveridadeOcorrencia.ALTA)
+                .severidade(SeveridadeOcorrenciaEnum.ALTA)
                 .horarioDeteccao(Instant.now())
                 .build();
     }
 
     private OcorrenciaRequest requestValido() {
         return new OcorrenciaRequest(-23.5505, -46.6333,
-                SeveridadeOcorrencia.ALTA, Instant.now());
+                SeveridadeOcorrenciaEnum.ALTA, Instant.now());
     }
 
     // -------------------------------------------------------------------------

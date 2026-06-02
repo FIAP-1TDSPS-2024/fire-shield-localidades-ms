@@ -1,7 +1,7 @@
 package br.com.catech.fire_shield_localidades_ms.entity;
 
-import br.com.catech.fire_shield_localidades_ms.entity.Ocorrencia.SeveridadeOcorrencia;
 import br.com.catech.fire_shield_localidades_ms.entity.Ocorrencia.StatusEnriquecimento;
+import br.com.catech.fire_shield_localidades_ms.enums.SeveridadeOcorrenciaEnum;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -15,7 +15,7 @@ class OcorrenciaTest {
         return Ocorrencia.builder()
                 .latitude(-23.5505)
                 .longitude(-46.6333)
-                .severidade(SeveridadeOcorrencia.ALTA)
+                .severidade(SeveridadeOcorrenciaEnum.ALTA)
                 .horarioDeteccao(Instant.now())
                 .build();
     }
@@ -38,7 +38,7 @@ class OcorrenciaTest {
                 Ocorrencia.builder()
                         .latitude(91.0)
                         .longitude(-46.0)
-                        .severidade(SeveridadeOcorrencia.ALTA)
+                        .severidade(SeveridadeOcorrenciaEnum.ALTA)
                         .horarioDeteccao(Instant.now())
                         .build()
         ).isInstanceOf(IllegalArgumentException.class)
@@ -51,7 +51,7 @@ class OcorrenciaTest {
                 Ocorrencia.builder()
                         .latitude(-23.0)
                         .longitude(181.0)
-                        .severidade(SeveridadeOcorrencia.ALTA)
+                        .severidade(SeveridadeOcorrenciaEnum.ALTA)
                         .horarioDeteccao(Instant.now())
                         .build()
         ).isInstanceOf(IllegalArgumentException.class)
@@ -77,7 +77,7 @@ class OcorrenciaTest {
                 Ocorrencia.builder()
                         .latitude(-23.0)
                         .longitude(-46.0)
-                        .severidade(SeveridadeOcorrencia.BAIXA)
+                        .severidade(SeveridadeOcorrenciaEnum.BAIXA)
                         .horarioDeteccao(null)
                         .build()
         ).isInstanceOf(IllegalArgumentException.class)

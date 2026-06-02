@@ -1,7 +1,7 @@
 package br.com.catech.fire_shield_localidades_ms.jobs;
 
 import br.com.catech.fire_shield_localidades_ms.entity.Ocorrencia;
-import br.com.catech.fire_shield_localidades_ms.entity.Ocorrencia.SeveridadeOcorrencia;
+import br.com.catech.fire_shield_localidades_ms.enums.SeveridadeOcorrenciaEnum;
 import br.com.catech.fire_shield_localidades_ms.entity.Ocorrencia.StatusEnriquecimento;
 import br.com.catech.fire_shield_localidades_ms.repository.OcorrenciaRepository;
 import br.com.catech.fire_shield_localidades_ms.service.OcorrenciaService;
@@ -31,7 +31,7 @@ class EnriquecimentoEnderecoJobTest {
         return Ocorrencia.builder()
                 .latitude(-23.5)
                 .longitude(-46.6)
-                .severidade(SeveridadeOcorrencia.ALTA)
+                .severidade(SeveridadeOcorrenciaEnum.ALTA)
                 .horarioDeteccao(Instant.now())
                 .build();
     }

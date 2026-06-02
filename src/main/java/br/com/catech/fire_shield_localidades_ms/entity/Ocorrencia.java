@@ -1,5 +1,6 @@
 package br.com.catech.fire_shield_localidades_ms.entity;
 
+import br.com.catech.fire_shield_localidades_ms.enums.SeveridadeOcorrenciaEnum;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -36,7 +37,7 @@ public class Ocorrencia {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private SeveridadeOcorrencia severidade;
+    private SeveridadeOcorrenciaEnum severidade;
 
     @Column(nullable = false)
     private Instant horarioDeteccao;
@@ -77,7 +78,7 @@ public class Ocorrencia {
     @Builder
     public Ocorrencia(double latitude,
                       double longitude,
-                      SeveridadeOcorrencia severidade,
+                      SeveridadeOcorrenciaEnum severidade,
                       Instant horarioDeteccao) {
 
         validarCoordenadas(latitude, longitude);
@@ -149,13 +150,6 @@ public class Ocorrencia {
         if (longitude < -180.0 || longitude > 180.0) {
             throw new IllegalArgumentException("Longitude deve estar entre -180 e 180");
         }
-    }
-
-    public enum SeveridadeOcorrencia {
-        CRITICO,
-        ALTA,
-        MEDIA,
-        BAIXA
     }
 
     public enum StatusEnriquecimento {

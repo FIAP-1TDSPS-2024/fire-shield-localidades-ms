@@ -1,6 +1,6 @@
 package br.com.catech.fire_shield_localidades_ms.dto;
 
-import br.com.catech.fire_shield_localidades_ms.entity.Ocorrencia.SeveridadeOcorrencia;
+import br.com.catech.fire_shield_localidades_ms.enums.SeveridadeOcorrenciaEnum;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -13,7 +13,7 @@ public record OcorrenciaOut(
         UUID uuid,
         double latitude,
         double longitude,
-        SeveridadeOcorrencia severidade,
+        SeveridadeOcorrenciaEnum severidade,
         Instant horarioDeteccao,
 
         // Endereço do estado para baixo

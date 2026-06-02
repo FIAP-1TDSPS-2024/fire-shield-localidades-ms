@@ -2,7 +2,7 @@ package br.com.catech.fire_shield_localidades_ms.external_interface.rabbit;
 
 import br.com.catech.fire_shield_localidades_ms.dto.OcorrenciaPayload;
 import br.com.catech.fire_shield_localidades_ms.dto.OcorrenciaRequest;
-import br.com.catech.fire_shield_localidades_ms.entity.Ocorrencia.SeveridadeOcorrencia;
+import br.com.catech.fire_shield_localidades_ms.enums.SeveridadeOcorrenciaEnum;
 import br.com.catech.fire_shield_localidades_ms.service.OcorrenciaService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -51,13 +51,13 @@ public class OcorrenciaConsumer {
     /**
      * Mapeia o campo "Urgencia" do producer externo para o enum interno SeveridadeOcorrencia.
      */
-    private SeveridadeOcorrencia mapearUrgencia(String urgencia) {
-        if (urgencia == null) return SeveridadeOcorrencia.MEDIA;
+    private SeveridadeOcorrenciaEnum mapearUrgencia(String urgencia) {
+        if (urgencia == null) return SeveridadeOcorrenciaEnum.MEDIA;
         return switch (urgencia.toLowerCase()) {
-            case "critical", "critico", "critica" -> SeveridadeOcorrencia.CRITICO;
-            case "alert", "alta", "high"          -> SeveridadeOcorrencia.ALTA;
-            case "low", "baixa"                   -> SeveridadeOcorrencia.BAIXA;
-            default                               -> SeveridadeOcorrencia.MEDIA;
+            case "critical", "critico", "critica" -> SeveridadeOcorrenciaEnum.CRITICO;
+            case "alert", "alta", "high"          -> SeveridadeOcorrenciaEnum.ALTA;
+            case "low", "baixa"                   -> SeveridadeOcorrenciaEnum.BAIXA;
+            default                               -> SeveridadeOcorrenciaEnum.MEDIA;
         };
     }
 }

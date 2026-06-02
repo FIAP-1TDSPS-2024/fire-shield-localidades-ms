@@ -1,7 +1,7 @@
 package br.com.catech.fire_shield_localidades_ms.external_interface.rabbit;
 
 import br.com.catech.fire_shield_localidades_ms.entity.Ocorrencia;
-import br.com.catech.fire_shield_localidades_ms.entity.Ocorrencia.SeveridadeOcorrencia;
+import br.com.catech.fire_shield_localidades_ms.enums.SeveridadeOcorrenciaEnum;
 import br.com.catech.fire_shield_localidades_ms.service.OcorrenciaService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -67,7 +67,7 @@ class OcorrenciaConsumerTest {
                 br.com.catech.fire_shield_localidades_ms.dto.OcorrenciaRequest.class);
         verify(ocorrenciaService).registrar(captor.capture());
 
-        assertThat(captor.getValue().severidade()).isEqualTo(SeveridadeOcorrencia.ALTA);
+        assertThat(captor.getValue().severidade()).isEqualTo(SeveridadeOcorrenciaEnum.ALTA);
     }
 
     @Test
@@ -80,7 +80,7 @@ class OcorrenciaConsumerTest {
         var captor = ArgumentCaptor.forClass(
                 br.com.catech.fire_shield_localidades_ms.dto.OcorrenciaRequest.class);
         verify(ocorrenciaService).registrar(captor.capture());
-        assertThat(captor.getValue().severidade()).isEqualTo(SeveridadeOcorrencia.CRITICO);
+        assertThat(captor.getValue().severidade()).isEqualTo(SeveridadeOcorrenciaEnum.CRITICO);
     }
 
     @Test
@@ -93,7 +93,7 @@ class OcorrenciaConsumerTest {
         var captor = ArgumentCaptor.forClass(
                 br.com.catech.fire_shield_localidades_ms.dto.OcorrenciaRequest.class);
         verify(ocorrenciaService).registrar(captor.capture());
-        assertThat(captor.getValue().severidade()).isEqualTo(SeveridadeOcorrencia.MEDIA);
+        assertThat(captor.getValue().severidade()).isEqualTo(SeveridadeOcorrenciaEnum.MEDIA);
     }
 
     @Test

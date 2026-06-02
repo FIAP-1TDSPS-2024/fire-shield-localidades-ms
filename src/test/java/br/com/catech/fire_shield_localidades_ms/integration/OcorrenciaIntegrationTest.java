@@ -2,7 +2,7 @@ package br.com.catech.fire_shield_localidades_ms.integration;
 
 import br.com.catech.fire_shield_localidades_ms.dto.OcorrenciaRequest;
 import br.com.catech.fire_shield_localidades_ms.entity.Ocorrencia;
-import br.com.catech.fire_shield_localidades_ms.entity.Ocorrencia.SeveridadeOcorrencia;
+import br.com.catech.fire_shield_localidades_ms.enums.SeveridadeOcorrenciaEnum;
 import br.com.catech.fire_shield_localidades_ms.entity.Ocorrencia.StatusEnriquecimento;
 import br.com.catech.fire_shield_localidades_ms.entity.OutboxEvent;
 import br.com.catech.fire_shield_localidades_ms.repository.OcorrenciaRepository;
@@ -43,7 +43,7 @@ class OcorrenciaIntegrationTest {
     private OcorrenciaRequest requestValido() {
         return new OcorrenciaRequest(
                 -23.5505, -46.6333,
-                SeveridadeOcorrencia.ALTA,
+                SeveridadeOcorrenciaEnum.ALTA,
                 Instant.now()
         );
     }
@@ -68,7 +68,7 @@ class OcorrenciaIntegrationTest {
     void deveListarTodasAsOcorrencias() {
         ocorrenciaService.registrar(requestValido());
         ocorrenciaService.registrar(new OcorrenciaRequest(
-                -3.717, -38.543, SeveridadeOcorrencia.CRITICO, Instant.now()));
+                -3.717, -38.543, SeveridadeOcorrenciaEnum.CRITICO, Instant.now()));
 
         List<Ocorrencia> todas = ocorrenciaService.listarTodas();
 
