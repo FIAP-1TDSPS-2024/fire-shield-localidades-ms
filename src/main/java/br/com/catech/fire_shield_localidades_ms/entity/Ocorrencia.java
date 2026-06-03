@@ -16,6 +16,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -40,10 +41,10 @@ public class Ocorrencia {
     private SeveridadeOcorrenciaEnum severidade;
 
     @Column(nullable = false)
-    private Instant horarioDeteccao;
+    private LocalDateTime horarioDeteccao;
 
     @Column(nullable = false, updatable = false)
-    private Instant horarioSalvamento;
+    private LocalDateTime horarioSalvamento;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
@@ -79,7 +80,7 @@ public class Ocorrencia {
     public Ocorrencia(double latitude,
                       double longitude,
                       SeveridadeOcorrenciaEnum severidade,
-                      Instant horarioDeteccao) {
+                      LocalDateTime horarioDeteccao) {
 
         validarCoordenadas(latitude, longitude);
         if (severidade == null) {
@@ -140,7 +141,7 @@ public class Ocorrencia {
 
     @PrePersist
     void registrarHorarioSalvamento() {
-        this.horarioSalvamento = Instant.now();
+        this.horarioSalvamento = LocalDateTime.now();
     }
 
     private void validarCoordenadas(double latitude, double longitude) {

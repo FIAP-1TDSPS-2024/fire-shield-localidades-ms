@@ -17,6 +17,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,7 +45,7 @@ public class OcorrenciaServiceImpl implements OcorrenciaService {
                 .latitude(request.latitude())
                 .longitude(request.longitude())
                 .severidade(request.severidade())
-                .horarioDeteccao(request.horarioDeteccao())
+                .horarioDeteccao(LocalDateTime.ofInstant(request.horarioDeteccao(), ZoneOffset.UTC))
                 .build();
         return ocorrenciaRepository.save(ocorrencia);
     }
